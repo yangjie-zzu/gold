@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model gold_price {
+  id              Int       @id @default(autoincrement())
+  price           String?   @db.VarChar
+  price_time      String?   @db.VarChar
+  price_channel   String?   @db.VarChar
+  created_time    DateTime? @db.Timestamptz(6)
+  updated_time    DateTime? @db.Timestamptz(6)
+  price_time_type String?   @db.VarChar
+  product_sku     String?   @db.VarChar
+}
