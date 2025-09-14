@@ -179,6 +179,77 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         .attr("d", line(list));
                     const pw = totalWidth / formattedData.length;
                     console.log('pw', pw, totalWidth, formattedData.length);
+
+                    const toolTipInstance = (() => {
+                        const toolTipWidth = 138;
+                        const toolTipHeight = 48;
+                        const tooltip = svg.append('g')
+                            .attr('class', 'tooltip')
+                            .style('position', 'relative')
+                            .style('z-index', 200)
+
+                        tooltip.append('rect')
+                            .attr('x', 0)
+                            .attr('y', 0)
+                            .attr('width', toolTipWidth)
+                            .attr('height', toolTipHeight - 4)
+                            .attr('fill', 'white')
+                            .attr('fill-opacity', 1)
+                            .attr('stroke', 'black');
+
+                        const price = tooltip.append('text')
+                            .attr('x', 4)
+                            .attr('y', 20)
+                            .attr('line-height', '20px')
+
+                        const date = tooltip.append('text')
+                            .attr('x', 4)
+                            .attr('y', 40)
+                            .attr('line-height', '20px')
+                        const vLine = svg.append('line')
+                            .attr('class', 'tooltip')
+                            .attr('y1', 0)
+                            .attr('y2', height)
+                            .attr('stroke', 'red')
+                            .attr('stroke-width', 1);
+                        const hLine = svg.append('line')
+                            .attr('class', 'tooltip')
+                            .attr('x1', 0)
+                            .attr('x2', totalWidth)
+                            .attr('stroke', 'red')
+                            .attr('stroke-width', 1);
+                        const hide = () => {
+                            tooltip.style('opacity', '0');
+                            vLine.attr('opacity', '0');
+                            hLine.attr('opacity', '0');
+                        }
+                        const show = () => {
+                            tooltip.style('opacity', 1);
+                            tooltip.raise();
+                            vLine.attr('opacity', '1');
+                            hLine.attr('opacity', '1');
+                        }
+                        hide();
+                        return {
+                            update: ({
+                                left,
+                                top,
+                                priceText,
+                                dateText,
+                            }) => {
+                                const toolTipLeft = left + toolTipWidth / 2 > totalWidth ? (totalWidth - toolTipWidth) : left - (toolTipWidth / 2);
+                                const tooltipTop = top - toolTipHeight;
+                                tooltip.attr('transform', `translate(${toolTipLeft},${tooltipTop})`);
+                                price.text(priceText);
+                                date.text(dateText);
+                                vLine.attr('x1', left).attr('x2', left);
+                                hLine.attr('y1', top).attr('y2', top);
+                                show();
+                            },
+                            hide,
+                        }
+                    })();
+
                     svg.selectAll('.rect')
                         .data(formattedData)
                         .enter()
@@ -195,55 +266,16 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         .on('mouseenter', (event, d) => {
                             const left = x(d.price_time);
                             const top = y(parseFloat(d.price));
-                            const toolTipWidth = 138;
-                            const toolTipHeight = 48;
-                            const toolTipLeft = left + toolTipWidth / 2 > totalWidth ? (totalWidth - toolTipWidth) : left - (toolTipWidth / 2);
-                            const tooltipTop = top - toolTipHeight;
-                            const tooltip = svg.append('g')
-                                .attr('class', 'tooltip')
-                                .attr('transform', `translate(${toolTipLeft},${tooltipTop})`);
-
-                            tooltip.append('rect')
-                                .attr('x', 0)
-                                .attr('y', 0)
-                                .attr('width', toolTipWidth)
-                                .attr('height', toolTipHeight - 4)
-                                .attr('fill', 'white')
-                                .attr('stroke', 'black');
-
-                            tooltip.append('text')
-                                .attr('x', 4)
-                                .attr('y', 20)
-                                .attr('line-height', '20px')
-                                .text(`Price: ${d.price}\n`);
-
-                            tooltip.append('text')
-                                .attr('x', 4)
-                                .attr('y', 40)
-                                .attr('line-height', '20px')
-                                .text(`${d3.timeFormat('%m月%d日%H:%M:%S')(d.price_time)}`);
-                            svg.append('line')
-                                .attr('class', 'tooltip')
-                                .attr('x1', left)
-                                .attr('y1', 0)
-                                .attr('x2', left)
-                                .attr('y2', height)
-                                .attr('stroke', 'red')
-                                .attr('stroke-width', 1);
-                            svg.append('line')
-                                .attr('class', 'tooltip')
-                                .attr('x1', 0)
-                                .attr('y1', top)
-                                .attr('x2', totalWidth)
-                                .attr('y2', top)
-                                .attr('stroke', 'red')
-                                .attr('stroke-width', 1);
-
-                        })
-                        .on('mouseleave', () => {
-                            svg.selectAll('.tooltip').remove();
+                            toolTipInstance.update({
+                                left,
+                                top,
+                                priceText: `价格: ${d.price} 元/克`,
+                                dateText: `${d3.timeFormat("%Y-%m-%d %H:%M")(d.price_time)}`,
+                            });
                         });
-
+                    svg.on('mouseleave', () => {
+                        // toolTip.hide();
+                    });
                 }}
             />
         </div>
