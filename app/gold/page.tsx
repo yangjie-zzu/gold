@@ -5,8 +5,7 @@ import { LineChart } from "./LineChart";
 export default async function Gold() {
     const goldPrices = await prisma.gold_price.findMany();
     return (
-        <div style={{width: '100vw', height: '100vh', overflow: 'auto', paddingRight: 1}}>
-            <div>黄金</div>
+        <div style={{ width: '100vw', height: '100vh', overflow: 'auto', paddingRight: 1 }}>
             <LineChart data={goldPrices} />
         </div>
     )

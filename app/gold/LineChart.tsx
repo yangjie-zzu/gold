@@ -8,8 +8,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
 
     return (
         <div>
-            <h2>Line Chart</h2>
-            <BaseChart style={{height: '50vw', background: 'transparent' }}
+            <BaseChart style={{ height: '50vw', background: 'transparent', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
                 renderChart={(container) => {
 
                     // Clear previous chart
@@ -78,27 +77,47 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         .attr("d", line(data));
                 }}
             />
-            <BaseChart style={{height: '50vw', background: 'transparent' }}
+            <BaseChart style={{ height: '50vw', background: 'transparent' }}
                 renderChart={(container) => {
                     const list = data?.filter(d => d.price_time_type === 'last')
-                    ?.sort((a, b) => (parseFloat(a.price_time) - parseFloat(b.price_time)));
-                    console.log('list', list);
+                        ?.sort((a, b) => (parseFloat(a.price_time) - parseFloat(b.price_time)));
                     // Clear previous chart
-                    d3.select(container).selectAll("*").remove();
+                    d3.select(container).style('position', 'relative').selectAll("*").remove();
 
                     const margin = { top: 20, right: 30, bottom: 30, left: 40 };
                     const width = container.clientWidth - margin.left - margin.right;
                     const height = container.clientHeight - margin.top - margin.bottom;
 
-                    const svg = d3.select(container)
-                        .append("svg")
+                    // Parse the date / time
+                    const parseTime = t => new Date(parseFloat(t));
+
+                    const totalWidth = width * ((parseFloat(list[list.length - 1]?.price_time) - parseFloat(list[0]?.price_time)) / (1000 * 60 * 60 * 24));
+
+                    const svgWrapper = d3.select(container).append('div')
+                        .style('width', `${width + margin.left + margin.right}px`)
+                        .style('height', `auto`)
+                        .style('overflow-x', 'auto')
+
+                    const svg = svgWrapper.append('svg')
+                        .attr("width", totalWidth + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform", `translate(${margin.left},${margin.top})`);
+                    
+                    const ySvgWrapper = d3.select(container).append('div')
+                        .style('width', `${width + margin.left + margin.right}px`)
+                        .style('height', `auto`)
+                        .style('position', 'absolute')
+                        .style('top', `0`)
+                        .style('left', `0`)
+                        .style('pointer-events', 'none');
+                    
+                    const ySvg = ySvgWrapper.append('svg')
                         .attr("width", width + margin.left + margin.right)
                         .attr("height", height + margin.top + margin.bottom)
                         .append("g")
                         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-                    // Parse the date / time
-                    const parseTime = t => new Date(parseFloat(t));
 
                     // Format the data
                     const formattedData = list.map(d => ({
@@ -110,7 +129,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                     // Set the ranges
                     const x = d3.scaleTime()
                         .domain(d3.extent(formattedData, d => d.price_time))
-                        .range([0, width]);
+                        .range([0, totalWidth]);
 
                     const y = d3.scaleLinear()
                         .domain([d3.min(formattedData, d => parseFloat(d.price)), d3.max(formattedData, d => parseFloat(d.price))])
@@ -134,11 +153,22 @@ export function LineChart({ data }: { data: gold_price[] }) {
                     svg.append("g")
                         .attr("transform", `translate(0,${height})`)
                         .call(d3.axisBottom(x).tickFormat((v, i) => {
-                            return timeFormat(v as Date);
-                        }));
+                            const str = timeFormat(v as Date);
+                            if (str === '00:00') {
+                                return d3.timeFormat("%m月%d日%H:%M")(v as Date);
+                            }
+                            return str;
+                        }).tickValues((() => {
+                            const set = new Set(data?.map(d => {
+                                const date = parseTime(d.price_time);
+                                const str = d3.timeFormat("%Y-%m-%d %H")(date);
+                                return str;
+                            }) || []);
+                            return Array.from(set).map(d => d3.timeParse("%Y-%m-%d %H")(d));
+                        })()));
 
                     // Add the Y Axis
-                    svg.append("g")
+                    ySvg.append("g")
                         .call(d3.axisLeft(y));
                     // Add the line path
                     svg.append("path")
@@ -147,7 +177,8 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         .attr("stroke", "steelblue")
                         .attr("stroke-width", 1.5)
                         .attr("d", line(list));
-                    const pw = width / formattedData.length;
+                    const pw = totalWidth / formattedData.length;
+                    console.log('pw', pw, totalWidth, formattedData.length);
                     svg.selectAll('.rect')
                         .data(formattedData)
                         .enter()
@@ -166,7 +197,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                             const top = y(parseFloat(d.price));
                             const toolTipWidth = 138;
                             const toolTipHeight = 48;
-                            const toolTipLeft = left + toolTipWidth / 2 > width ? (width - toolTipWidth) : left - (toolTipWidth / 2);
+                            const toolTipLeft = left + toolTipWidth / 2 > totalWidth ? (totalWidth - toolTipWidth) : left - (toolTipWidth / 2);
                             const tooltipTop = top - toolTipHeight;
                             const tooltip = svg.append('g')
                                 .attr('class', 'tooltip')
@@ -203,7 +234,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                                 .attr('class', 'tooltip')
                                 .attr('x1', 0)
                                 .attr('y1', top)
-                                .attr('x2', width)
+                                .attr('x2', totalWidth)
                                 .attr('y2', top)
                                 .attr('stroke', 'red')
                                 .attr('stroke-width', 1);
@@ -212,7 +243,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         .on('mouseleave', () => {
                             svg.selectAll('.tooltip').remove();
                         });
-                    
+
                 }}
             />
         </div>
