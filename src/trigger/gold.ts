@@ -1,7 +1,5 @@
+import { prisma } from "@/prisma/prismaClient";
 import { logger, schedules, wait } from "@trigger.dev/sdk/v3";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
 
 export const goldHistoryPrice = schedules.task({
   id: "gold-date-price-history-task",
