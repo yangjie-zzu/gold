@@ -7,7 +7,7 @@ import React, { useEffect, useLayoutEffect } from "react";
 export function LineChart({ data }: { data: gold_price[] }) {
 
     return (
-        <div>
+        <div style={{ width: '100%' }}>
             <BaseChart style={{ height: '50vw', background: 'transparent', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
                 renderChart={(container) => {
 
@@ -89,6 +89,19 @@ export function LineChart({ data }: { data: gold_price[] }) {
                     const height = container.clientHeight - margin.top - margin.bottom;
 
                     // Parse the date / time
+
+                    // 日期中文本地化
+                    const local = d3.timeFormatDefaultLocale({
+                        dateTime: "%Y年%m月%d日 %A %p %I:%M:%S",
+                        date: "%Y-%m-%d",
+                        time: "%H:%M:%S",
+                        periods: ["AM", "PM"],
+                        days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+                        shortDays: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+                        months: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+                        shortMonths: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月",
+                            "9月", "10月", "11月", "12月"]
+                    });
                     const parseTime = t => new Date(parseFloat(t));
 
                     const totalWidth = width * ((parseFloat(list[list.length - 1]?.price_time) - parseFloat(list[0]?.price_time)) / (1000 * 60 * 60 * 24));
@@ -147,7 +160,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                             return v;
                         });
 
-                    const timeFormat = d3.timeFormat("%H:%M");
+                    const timeFormat = d3.timeFormat("%H");
 
                     // Add the X Axis
                     svg.append("g")
@@ -167,7 +180,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                             return Array.from(set).map(d => d3.timeParse("%Y-%m-%d %H")(d));
                         })()));
 
-                    // Add the Y Axis
+                    // 添加Y轴，绘制网格线
                     ySvg.append("g")
                         .call(d3.axisLeft(y));
                     // Add the line path
@@ -250,32 +263,83 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         }
                     })();
 
-                    svg.selectAll('.rect')
-                        .data(formattedData)
-                        .enter()
-                        .append('rect')
-                        .attr('class', 'rect')
-                        .style('cursor', 'pointer')
-                        .attr('x', (d, i) => {
-                            return x(d.price_time) - pw / 2;
-                        })
-                        .attr('y', d => 0)
-                        .attr('width', pw)
-                        .attr('height', height)
-                        .attr('fill', 'rgba(255, 160, 122, 0.2)')
-                        .on('mouseenter', (event, d) => {
-                            const left = x(d.price_time);
-                            const top = y(parseFloat(d.price));
-                            toolTipInstance.update({
-                                left,
-                                top,
-                                priceText: `价格: ${d.price} 元/克`,
-                                dateText: `${d3.timeFormat("%Y-%m-%d %H:%M")(d.price_time)}`,
-                            });
-                        });
+                    // svg.selectAll('.rect')
+                    //     .data(formattedData)
+                    //     .enter()
+                    //     .append('rect')
+                    //     .attr('class', 'rect')
+                    //     .style('cursor', 'pointer')
+                    //     .attr('x', (d, i) => {
+                    //         return x(d.price_time) - pw / 2;
+                    //     })
+                    //     .attr('y', d => 0)
+                    //     .attr('width', pw)
+                    //     .attr('height', height)
+                    //     .attr('fill', 'rgba(255, 160, 122, 0.2)')
+                    //     .on('mouseenter', (event, d) => {
+                    //         const left = x(d.price_time);
+                    //         const top = y(parseFloat(d.price));
+                    //         toolTipInstance.update({
+                    //             left,
+                    //             top,
+                    //             priceText: `价格: ${d.price} 元/克`,
+                    //             dateText: `${d3.timeFormat("%Y-%m-%d %H:%M")(d.price_time)}`,
+                    //         });
+                    //     });
                     svg.on('mouseleave', () => {
                         // toolTip.hide();
                     });
+
+                    // 筛选出0点日期，开始时间，结束时间
+                    
+                    const startDate = new Date(formattedData[0].price_time);
+                    const zeroStartDate = new Date(startDate);
+                    zeroStartDate.setHours(0, 0, 0, 0);
+                    const endDate = new Date(formattedData[formattedData.length - 1].price_time);
+                    const zeroEndDate = new Date(endDate);
+                    zeroEndDate.setHours(0, 0, 0, 0);
+                    const zeroDates = [];
+                    for (const date = zeroStartDate; date <= zeroEndDate; date.setDate(date.getDate() + 1)) {
+                        if (date.getTime() <= endDate.getTime()) {
+                            zeroDates.push(new Date(date));
+                        }
+                    }
+
+                    console.log('zeroDates', zeroDates);
+
+                    // 绘制竖线
+                    svg.selectAll('.zero-line')
+                        .data(zeroDates)
+                        .enter()
+                        .append('g')
+                        .attr('class', 'zero-line')
+                        .attr('transform', (d) => `translate(${x(d)},0)`)
+                        .append('line')
+                        .attr('class', 'zero-line')
+                        .attr('y2', height)
+                        .attr('stroke', 'gray')
+                    // 添加日期标签
+                    svg.selectAll('.date')
+                        .data(zeroDates.slice(0, zeroDates.length - 1))
+                        .enter()
+                        .append('text')
+                        .attr('class', 'date')
+                        .attr('x', (d, i) => {
+                            const next = zeroDates[i + 1];
+                            if (next) {
+                                return x(d) + (x(next) - x(d)) / 2;
+                            }
+                        })
+                        .attr('y', 0)
+                        .attr('width', (d, i) => {
+                            const next = zeroDates[i + 1];
+                            if (next) {
+                                return x(next) - x(d);
+                            }
+                        })
+                        .attr('font-size', 12)
+                        .attr('text-anchor', 'middle')
+                        .text(d => d3.timeFormat("%m月%d日%a")(d));
                 }}
             />
         </div>
