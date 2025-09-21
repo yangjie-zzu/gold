@@ -4,7 +4,26 @@ import { gold_price } from "@prisma/client";
 import * as d3 from "d3";
 import React, { useEffect, useLayoutEffect } from "react";
 
-export function LineChart({ data }: { data: gold_price[] }) {
+// 日期中文本地化
+d3.timeFormatDefaultLocale({
+    dateTime: "%Y年%m月%d日 %A %p %I:%M:%S",
+    date: "%Y-%m-%d",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+    shortDays: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+    months: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+    shortMonths: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月",
+        "9月", "10月", "11月", "12月"]
+});
+
+export function LineChart({ initData, getDataFunc }: { initData: gold_price[], getDataFunc?: () => Promise<gold_price[]> }) {
+
+    const [data, setData] = React.useState<gold_price[]>(initData || []);
+
+    const last = data?.[data?.length - 1];
+
+    const date = d3.timeFormat("%Y-%m-%d %H:%M:%S")(new Date(parseFloat(last.price_time)));
 
     return (
         <div style={{ width: '100%' }}>
@@ -77,6 +96,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         .attr("d", line(data));
                 }}
             />
+            <div>最新价格: {last?.price}; 时间: {date}</div>
             <BaseChart style={{ height: '50vw', background: 'transparent' }}
                 renderChart={(container) => {
                     const list = data?.filter(d => d.price_time_type === 'last')
@@ -89,25 +109,15 @@ export function LineChart({ data }: { data: gold_price[] }) {
                     const height = container.clientHeight - margin.top - margin.bottom;
 
                     // Parse the date / time
-
-                    // 日期中文本地化
-                    const local = d3.timeFormatDefaultLocale({
-                        dateTime: "%Y年%m月%d日 %A %p %I:%M:%S",
-                        date: "%Y-%m-%d",
-                        time: "%H:%M:%S",
-                        periods: ["AM", "PM"],
-                        days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
-                        shortDays: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
-                        months: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
-                        shortMonths: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月",
-                            "9月", "10月", "11月", "12月"]
-                    });
                     const parseTime = t => new Date(parseFloat(t));
 
                     const totalWidth = width * ((parseFloat(list[list.length - 1]?.price_time) - parseFloat(list[0]?.price_time)) / (1000 * 60 * 60 * 24));
 
                     const svgWrapper = d3.select(container).append('div')
                         .style('width', `${width + margin.left + margin.right}px`)
+                        .style('padding-left', `${margin.left}px`)
+                        .style('padding-right', `${margin.right}px`)
+                        .append('div')
                         .style('height', `auto`)
                         .style('overflow-x', 'auto')
 
@@ -116,7 +126,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         .attr("height", height + margin.top + margin.bottom)
                         .append("g")
                         .attr("transform", `translate(${margin.left},${margin.top})`);
-                    
+
                     const ySvgWrapper = d3.select(container).append('div')
                         .style('width', `${width + margin.left + margin.right}px`)
                         .style('height', `auto`)
@@ -124,7 +134,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         .style('top', `0`)
                         .style('left', `0`)
                         .style('pointer-events', 'none');
-                    
+
                     const ySvg = ySvgWrapper.append('svg')
                         .attr("width", width + margin.left + margin.right)
                         .attr("height", height + margin.top + margin.bottom)
@@ -160,17 +170,12 @@ export function LineChart({ data }: { data: gold_price[] }) {
                             return v;
                         });
 
-                    const timeFormat = d3.timeFormat("%H");
-
                     // Add the X Axis
                     svg.append("g")
                         .attr("transform", `translate(0,${height})`)
                         .call(d3.axisBottom(x).tickFormat((v, i) => {
-                            const str = timeFormat(v as Date);
-                            if (str === '00:00') {
-                                return d3.timeFormat("%m月%d日%H:%M")(v as Date);
-                            }
-                            return str;
+                            const h = (v as Date).getHours();
+                            return h.toString();
                         }).tickValues((() => {
                             const set = new Set(data?.map(d => {
                                 const date = parseTime(d.price_time);
@@ -178,11 +183,11 @@ export function LineChart({ data }: { data: gold_price[] }) {
                                 return str;
                             }) || []);
                             return Array.from(set).map(d => d3.timeParse("%Y-%m-%d %H")(d));
-                        })()));
+                        })()).tickSize(-height)).attr('stroke-opacity', 0.15);
 
                     // 添加Y轴，绘制网格线
                     ySvg.append("g")
-                        .call(d3.axisLeft(y));
+                        .call(d3.axisLeft(y).tickSize(-width)).attr('stroke-opacity', 0.15);
                     // Add the line path
                     svg.append("path")
                         .datum(formattedData)
@@ -291,11 +296,11 @@ export function LineChart({ data }: { data: gold_price[] }) {
                     });
 
                     // 筛选出0点日期，开始时间，结束时间
-                    
-                    const startDate = new Date(formattedData[0].price_time);
+
+                    const startDate = new Date(formattedData[0]?.price_time);
                     const zeroStartDate = new Date(startDate);
                     zeroStartDate.setHours(0, 0, 0, 0);
-                    const endDate = new Date(formattedData[formattedData.length - 1].price_time);
+                    const endDate = new Date(formattedData[formattedData.length - 1]?.price_time);
                     const zeroEndDate = new Date(endDate);
                     zeroEndDate.setHours(0, 0, 0, 0);
                     const zeroDates = [];
@@ -330,7 +335,7 @@ export function LineChart({ data }: { data: gold_price[] }) {
                                 return x(d) + (x(next) - x(d)) / 2;
                             }
                         })
-                        .attr('y', 0)
+                        .attr('y', -8)
                         .attr('width', (d, i) => {
                             const next = zeroDates[i + 1];
                             if (next) {
@@ -340,8 +345,16 @@ export function LineChart({ data }: { data: gold_price[] }) {
                         .attr('font-size', 12)
                         .attr('text-anchor', 'middle')
                         .text(d => d3.timeFormat("%m月%d日%a")(d));
+                    setTimeout(() => {
+                        svgWrapper.node()?.scrollTo({ left: totalWidth });
+                    });
                 }}
             />
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
+                <button onClick={async () => {
+                    setData(await getDataFunc?.());
+                }}>刷新</button>
+            </div>
         </div>
     );
 }
