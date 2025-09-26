@@ -23,6 +23,22 @@ export function LineChart({ initData, getDataFunc }: { initData: gold_price[], g
 
     const [loading, setLoading] = React.useState(false);
 
+    const queryData = async () => {
+        try {
+            setLoading(true);
+            setData(await getDataFunc?.());
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const queryDataRef = React.useRef(queryData);
+    queryDataRef.current = queryData;
+
+    useEffect(() => {
+        queryDataRef.current();
+    }, [queryDataRef]);
+
     const last = data?.[data?.length - 1];
 
     const date = d3.timeFormat("%Y-%m-%d %H:%M:%S")(new Date(parseFloat(last.price_time)));
