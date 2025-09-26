@@ -21,6 +21,8 @@ export function LineChart({ initData, getDataFunc }: { initData: gold_price[], g
 
     const [data, setData] = React.useState<gold_price[]>(initData || []);
 
+    const [loading, setLoading] = React.useState(false);
+
     const last = data?.[data?.length - 1];
 
     const date = d3.timeFormat("%Y-%m-%d %H:%M:%S")(new Date(parseFloat(last.price_time)));
@@ -352,8 +354,13 @@ export function LineChart({ initData, getDataFunc }: { initData: gold_price[], g
             />
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
                 <button onClick={async () => {
-                    setData(await getDataFunc?.());
-                }}>刷新</button>
+                    try {
+                        setLoading(true);
+                        setData(await getDataFunc?.());
+                    } finally {
+                        setLoading(false);
+                    }
+                }}>{loading ? '请求中' : '刷新'}</button>
             </div>
         </div>
     );
