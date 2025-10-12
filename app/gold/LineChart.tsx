@@ -1,5 +1,5 @@
 'use client';
-import { BaseChart } from "@/components/BaseChart";
+import { BaseChart } from "../../components/BaseChart";
 import { gold_price } from "@prisma/client";
 import * as d3 from "d3";
 import React, { useEffect, useLayoutEffect } from "react";

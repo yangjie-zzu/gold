@@ -1,5 +1,5 @@
 
-import { prisma } from "@/prisma/prismaClient";
+import { prisma } from "../../prisma/prismaClient";
 import { LineChart } from "./LineChart";
 
 export default async function Gold() {

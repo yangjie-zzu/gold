@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": false,
+        "esModuleInterop": true,
+        "target": "esnext",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "jsx": "preserve",
+        "incremental": true,
+        "outDir": ".task-dist"
+    },
+    "include": [
+        "next-env.d.ts",
+        "**/*.ts",
+        "**/*.tsx",
+        ".next/types/**/*.ts",
+        "trigger.config.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
