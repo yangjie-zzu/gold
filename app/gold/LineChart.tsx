@@ -51,7 +51,7 @@ export function LineChart({ initData, getDataFunc }: { initData: gold_price[], g
                     // Clear previous chart
                     d3.select(container).selectAll("*").remove();
 
-                    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+                    const margin = { top: 20, right: 44, bottom: 30, left: 50 };
                     const width = container.clientWidth - margin.left - margin.right;
                     const height = container.clientHeight - margin.top - margin.bottom;
 
@@ -99,8 +99,13 @@ export function LineChart({ initData, getDataFunc }: { initData: gold_price[], g
                     svg.append("g")
                         .attr("transform", `translate(0,${height})`)
                         .call(d3.axisBottom(x).tickFormat((v, i) => {
-                            return timeFormat(v as Date);
-                        }));
+                            return d3.timeFormat("%Y-%m-%d %H:%M")(v as Date);
+                        }).tickValues((() => {
+                            return [
+                                formattedData?.[0]?.price_time,
+                                formattedData?.[formattedData?.length - 1]?.price_time
+                            ];
+                        })()));
 
                     // Add the Y Axis
                     svg.append("g")
