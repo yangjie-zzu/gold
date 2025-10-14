@@ -6,7 +6,6 @@ services:
       target: nextjs
     ports:
       - "3000:3000"
-    target: nextjs
   task:
     build: 
       context: .
