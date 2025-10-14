@@ -4,7 +4,8 @@ name: default
 
 steps:
 - name: test
-  image: docker:dind
+  image: docker:latest
+  privileged: true
   volumes:
   - name: dockersock
     path: /var/run/docker.sock
