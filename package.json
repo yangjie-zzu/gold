@@ -7,7 +7,8 @@
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "task:build": "tsc -p tsconfig.task.json"
+    "task:build": "tsc -p tsconfig.task.json",
+    "task:run": "node .task-dist/task/index.js"
   },
   "dependencies": {
     "@prisma/client": "6.15.0",
