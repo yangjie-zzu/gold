@@ -9,7 +9,7 @@ steps:
   - name: dockersock
     path: /var/run/docker.sock
   commands:
-  - docker compose up -d
+  - docker ps
 
 volumes:
 - name: dockersock
