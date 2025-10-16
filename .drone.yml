@@ -1,25 +1,12 @@
 kind: pipeline
+type: exec
 name: default
 
+platform:
+  os: linux
+  arch: amd64
+
 steps:
-- name: compose
-  image: docker:latest
-  volumes:
-  - name: dockersock
-    path: /var/run
+- name: run
   commands:
-  - sleep 5 # give docker enough time to start
-  - docker ps
   - docker compose up -d
-
-services:
-- name: docker
-  image: docker:latest
-  privileged: true
-  volumes:
-  - name: dockersock
-    path: /var/run
-
-volumes:
-- name: dockersock
-  temp: {}
