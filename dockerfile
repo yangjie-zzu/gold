@@ -2,7 +2,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --frozen-lockfile
-COPY /opt/prisma /opt/prisma
+VOLUME [ "/opt/prisma" ] 
 ENV PRISMA_QUERY_ENGINE_LIBRARY=/opt/prisma/libquery_engine.so.node
 
 FROM node:22-alpine as nextjs
