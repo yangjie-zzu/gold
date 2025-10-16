@@ -7,7 +7,6 @@ FROM node:22-alpine as nextjs
 WORKDIR /app
 COPY . .
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package*.json ./
 COPY .env.aliyun .env.local
 ENV NODE_ENV=production
@@ -19,7 +18,6 @@ FROM node:22-alpine AS task
 WORKDIR /app
 COPY . .
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package*.json ./
 COPY .env.aliyun .env.local
 ENV NODE_ENV=production
