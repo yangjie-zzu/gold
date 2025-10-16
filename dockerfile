@@ -12,6 +12,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY .env.aliyun .env.local
 ENV NODE_ENV=production
+RUN npx prisma generate
+RUN cat ./node_modules/.prisma/client/index.d.ts
 RUN npm run build
 EXPOSE 3000
 CMD ["npm", "start"]
