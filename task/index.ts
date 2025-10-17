@@ -64,6 +64,9 @@ startTask({
   // 每分钟执行
   cron: "*/1 * * * *",
   run: async () => {
+
+    
+    console.log("DATABASE_URL:", process.env.DATABASE_URL);
     const res = await fetch(
       `https://ms.jr.jd.com/gw/generic/hj/h5/m/latestPrice?reqData={}`,
       {
