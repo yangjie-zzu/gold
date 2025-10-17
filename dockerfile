@@ -8,7 +8,6 @@ WORKDIR /app
 COPY . .
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
-COPY .env.aliyun .env.local
 ENV NODE_ENV=production
 RUN npx prisma generate
 RUN npm run build
@@ -20,7 +19,6 @@ WORKDIR /app
 COPY . .
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
-COPY .env.aliyun .env.local
 ENV NODE_ENV=production
 RUN npx prisma generate
 RUN npm run task:build
