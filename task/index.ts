@@ -1,6 +1,5 @@
 import { startTask } from "./util";
 import { prisma } from "../prisma/prismaClient";
-
 startTask({
     cron: "0 0 * * *",
     run: async () => {

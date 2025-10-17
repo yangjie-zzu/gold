@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "task:build": "tsc -p tsconfig.task.json",
-    "task:run": "node .task-dist/task/index.js"
+    "task:run": "dotenvx run -f .env.local -- node .task-dist/task/index.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "6.17.1",
@@ -22,6 +22,7 @@
     "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "1.51.0",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@trigger.dev/build": "4.0.2",
