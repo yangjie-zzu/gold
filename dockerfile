@@ -2,8 +2,6 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --frozen-lockfile
-VOLUME [ "/opt/prisma" ] 
-ENV PRISMA_QUERY_ENGINE_LIBRARY=/opt/prisma/libquery_engine.so.node
 
 FROM --platform=amd64 node:22-alpine as nextjs
 WORKDIR /app

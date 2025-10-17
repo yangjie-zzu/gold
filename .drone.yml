@@ -7,6 +7,18 @@ platform:
   arch: amd64
 
 steps:
-- name: run
+- name: prisma
   commands:
-  - docker compose up -d
+  - npx prisma generate
+- name: nextjs build
+  commands:
+  - npm run build
+- name: task build
+  commands:
+  - npm run task:build
+- name: nextjs run
+  commands:
+  - npm start
+- name: task run
+  commands:
+  - node .task-dist/task/index.js
