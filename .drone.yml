@@ -9,8 +9,7 @@ platform:
 steps:
 - name: install
   commands:
-  - env
-  - cat /etc/profile
+  - whoami
   - npm install --frozen-lockfile
 - name: prisma
   commands:
