@@ -7,6 +7,9 @@ platform:
   arch: amd64
 
 steps:
+- name: install
+  commands:
+  - npm install --frozen-lockfile
 - name: prisma
   commands:
   - npx prisma generate
