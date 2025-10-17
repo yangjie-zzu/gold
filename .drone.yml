@@ -10,6 +10,7 @@ steps:
 - name: install
   commands:
   - env
+  - cat /etc/profile
   - npm install --frozen-lockfile
 - name: prisma
   commands:
