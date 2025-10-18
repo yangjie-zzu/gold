@@ -1,9 +1,11 @@
 FROM node:22-alpine AS builder
+USER node
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-FROM --platform=amd64 node:22-alpine as nextjs
+FROM node:22-alpine AS nextjs
+USER node
 WORKDIR /app
 COPY . .
 COPY --from=builder /app/node_modules ./node_modules
@@ -14,7 +16,8 @@ RUN npm run build
 EXPOSE 3000
 CMD ["npm", "start"]
 
-FROM --platform=amd64 node:22-alpine AS task
+FROM node:22-alpine AS task
+USER node
 WORKDIR /app
 COPY . .
 COPY --from=builder /app/node_modules ./node_modules

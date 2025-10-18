@@ -6,13 +6,9 @@ services:
       target: nextjs
     ports:
       - "3000:3000"
-    volumes:
-      - ./:/app
   task:
     build: 
       context: .
       dockerfile: dockerfile
       target: task
-    volumes:
-      - ./:/app
-    
+      
