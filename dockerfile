@@ -1,7 +1,7 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --frozen-lockfile
+RUN npm install
 
 FROM --platform=amd64 node:22-alpine as nextjs
 WORKDIR /app
