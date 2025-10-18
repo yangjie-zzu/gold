@@ -1,14 +1,19 @@
 services:
   nextjs:
+    container_name: gold-nextjs
     build:
       context: .
       dockerfile: dockerfile
       target: nextjs
+    volumes:
+      - ./:/app
     ports:
       - "3000:3000"
   task:
+    container_name: gold-task
     build: 
       context: .
       dockerfile: dockerfile
       target: task
-      
+    volumes:
+      - ./:/app
