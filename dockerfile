@@ -14,7 +14,7 @@ ENV NODE_ENV=production
 RUN npx prisma generate
 RUN npm run build
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["node", ".next/standalone/server.js"]
 
 FROM node:22-alpine AS task
 USER node
