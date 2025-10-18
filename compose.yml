@@ -5,6 +5,7 @@ services:
       context: .
       dockerfile: dockerfile
       target: nextjs
+    user: node
     volumes:
       - ./:/app
     ports:
@@ -15,5 +16,6 @@ services:
       context: .
       dockerfile: dockerfile
       target: task
+    user: node
     volumes:
       - ./:/app
