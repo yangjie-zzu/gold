@@ -37,7 +37,7 @@ RUN \
   fi
 
 # Production image, copy all the files and run next
-FROM base AS runner
+FROM base AS nextjs
 WORKDIR /app
 
 ENV NODE_ENV=production
