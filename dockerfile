@@ -1,67 +1,22 @@
-# syntax=docker.io/docker/dockerfile:1
-
-FROM node:22-alpine AS base
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+FROM node:22-alpine AS builder
+USER node
 WORKDIR /app
+COPY --chown=node:node package*.json ./
+RUN npm install
 
-# Install dependencies based on the preferred package manager
-COPY --chown=node:node package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
-RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
-
-
-# Rebuild the source code only when needed
-FROM base AS builder
+FROM node:22-alpine AS nextjs
+USER node
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED=1
-RUN npx prisma generate
-RUN \
-  if [ -f yarn.lock ]; then yarn run build; \
-  elif [ -f package-lock.json ]; then npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
-
-# Production image, copy all the files and run next
-FROM base AS nextjs
-WORKDIR /app
-
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED=1
-
-COPY --from=builder /app/public ./public
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-USER nextjs
-
+RUN npx prisma generate
+RUN npm run build
 EXPOSE 3000
+CMD ["npm", "start"]
 
-ENV PORT=3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
-ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]
-
-FROM deps AS task
+FROM node:22-alpine AS task
 USER node
 WORKDIR /app
 COPY . .
@@ -70,5 +25,4 @@ COPY --from=builder /app/package*.json ./
 ENV NODE_ENV=production
 RUN npx prisma generate
 RUN npm run task:build
-USER node
 CMD ["npm", "run", "task:run"]
