@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
+    "dev": "dotenvx run -f .env.local -- next dev --turbopack",
+    "build": "dotenvx run -f .env.local -- next build --turbopack",
+    "start": "dotenvx run -f .env.local -- next start",
     "lint": "eslint",
     "task:build": "tsc -p tsconfig.task.json",
     "task:run": "dotenvx run -f .env.local -- node .task-dist/task/index.js"
