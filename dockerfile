@@ -1,7 +1,7 @@
 FROM node:22-alpine AS builder
 USER node
 WORKDIR /app
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
 RUN npm install
 
 FROM node:22-alpine AS nextjs
