@@ -7,11 +7,12 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - /opt/prisma:/opt/prisma
+      - ./:/app
   task:
     build: 
       context: .
       dockerfile: dockerfile
       target: task
     volumes:
-      - /opt/prisma:/opt/prisma
+      - ./:/app
+    
