@@ -1,13 +1,7 @@
-FROM node:22-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --frozen-lockfile
-
 FROM --platform=amd64 node:22-alpine as nextjs
 WORKDIR /app
 COPY . .
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+RUN npm install --frozen-lockfile
 ENV NODE_ENV=production
 RUN npx prisma generate
 RUN npm run build
@@ -17,8 +11,7 @@ CMD ["npm", "start"]
 FROM --platform=amd64 node:22-alpine AS task
 WORKDIR /app
 COPY . .
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+RUN npm install --frozen-lockfile
 ENV NODE_ENV=production
 RUN npx prisma generate
 RUN npm run task:build
